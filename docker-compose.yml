@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    container_name: databroker-web
+    env_file: .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - ollama
+    volumes:
+      - ./data/sqlite:/app/data
+  redis:
+    image: redis:7-alpine
+  imap-poller:
+    build:
+      context: ./workers/imap-poller
+    container_name: databroker-imap
+    env_file: .env
+    depends_on:
+      - web
+    volumes:
+      - ./data/sqlite:/app/data
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ./data/ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "8025:8025"
